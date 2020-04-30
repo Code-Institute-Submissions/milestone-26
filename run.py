@@ -2,23 +2,27 @@
 Simple Flask app, which prints whatever POST data it receives
 for API testing purposes.
 """
-
+from flask import Flask,render_template, request
+from config import Config
+from forms import CreateFilmForm, UpdateFilmForm, ConfirmDelete
+from flask_pymongo import PyMongo, DESCENDING
 import os
-from flask import Flask, request
+import urllib
 
-APP = Flask(__name__)
+app = Flask(__name__)
+app.config['MONGO_DBNAME']= 'films'
+username = urllib.parse.quote_plus('admin1')
+password = urllib.parse.quote_plus('movies')
+app.config["MONGO_URI"]= "mongodb+srv://admin1:movies@cluster0-xnfne.mongodb.net/films?retryWrites=true&w=majority"
+mongo=PyMongo(app)
 
-
-@APP.route("/", methods=["GET", "POST"])
+@app.route('/')
+@app.route('/index')
 def index():
-    """
-    Main route, which simply prints out the JSON content
-    and returns a status of 200
-    """
-
-    print(request.json)
-    return "OK", 200
+    hello="some message"
+    films=mongo.db.films.find()
+    return render_template("index.html",films=films, message=hello)
 
 
-APP.run(host=os.getenv("IP", "0.0.0.0"),
-        port=int(os.getenv("PORT", "5000")), debug=False)
+app.run(host=os.getenv("IP", "0.0.0.0"),
+        port=int(os.getenv("PORT", "5000")), debug=True)
